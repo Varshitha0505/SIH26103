@@ -196,35 +196,36 @@ def analyze_project(
 # TEST PROJECT
 # ------------------------------------------------
 
-result = analyze_project(
-    cost_escalation=18,
-    schedule_delay=25,
-    expenditure=80,
-    physical_progress=55
-)
-
-print("===================================")
-print("       AI / ANALYTICS ENGINE")
-print("===================================")
-
-print("Risk Level:", result["risk_level"])
-print("Confidence:", result["confidence"], "%")
-print("Progress Gap:", result["progress_gap"], "%")
-
-print("\nWhy is the project risky?")
-print(result["explanation"])
-
-print("\nMain Risk Factors:")
-
-for risk in result["main_risk_factors"]:
-    print(
-        f"- {risk['factor']}: "
-        f"{risk['value']}% | "
-        f"{risk['severity']}"
+if __name__ == "__main__":
+    result = analyze_project(
+        cost_escalation=18,
+        schedule_delay=25,
+        expenditure=80,
+        physical_progress=55
     )
-    print(f"  Reason: {risk['reason']}")
 
-print("\nRecommendations:")
+    print("===================================")
+    print("       AI / ANALYTICS ENGINE")
+    print("===================================")
 
-for recommendation in result["recommendations"]:
-    print("-", recommendation)
+    print("Risk Level:", result["risk_level"])
+    print("Confidence:", result["confidence"], "%")
+    print("Progress Gap:", result["progress_gap"], "%")
+
+    print("\nWhy is the project risky?")
+    print(result["explanation"])
+
+    print("\nMain Risk Factors:")
+
+    for risk in result["main_risk_factors"]:
+        print(
+            f"- {risk['factor']}: "
+            f"{risk['value']}% | "
+            f"{risk['severity']}"
+        )
+        print(f"  Reason: {risk['reason']}")
+
+    print("\nRecommendations:")
+
+    for recommendation in result["recommendations"]:
+        print("-", recommendation)
