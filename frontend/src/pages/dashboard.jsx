@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BarChart3,
   Bell,
+  BookOpen,
   BrainCircuit,
   Building2,
   CheckCircle2,
@@ -37,6 +38,15 @@ import {
   CartesianGrid,
 } from "recharts";
 
+import {
+  normalizeProject,
+  normalizeProjects,
+  formatCrore,
+  formatNumber,
+  calculateRiskScore,
+  generateRecommendations,
+} from "../utils/projectUtils";
+
 const API_URL = "http://127.0.0.1:5000";
 
 const riskColors = {
@@ -47,122 +57,8 @@ const riskColors = {
 };
 
 /* =========================================================
-   DATA NORMALIZATION
-   Handles both:
-   project_name / Project Name
-   state / State
-   physical_progress / Physical Progress
-   etc.
-========================================================= */
-
-function normalizeProject(project) {
-  return {
-    ...project,
-
-    project_name:
-      project.project_name ??
-      project["Project Name"] ??
-      project.ProjectName ??
-      "Unnamed Project",
-
-    agency:
-      project.agency ??
-      project["Agency"] ??
-      "Agency unavailable",
-
-    state:
-      project.state ??
-      project["State"] ??
-      "Unknown",
-
-    project_code:
-      project.project_code ??
-      project["Project Code"] ??
-      project.ProjectCode ??
-      "",
-
-    physical_progress:
-      Number(
-        project.physical_progress ??
-          project["Physical Progress"] ??
-          0
-      ) || 0,
-
-    original_cost:
-      Number(
-        project.original_cost ??
-          project["Original Cost"] ??
-          0
-      ) || 0,
-
-    revised_cost:
-      Number(
-        project.revised_cost ??
-          project["Revised Cost"] ??
-          0
-      ) || 0,
-
-    cumulative_expenditure:
-      Number(
-        project.cumulative_expenditure ??
-          project["Cumulative Expenditure"] ??
-          0
-      ) || 0,
-
-    risk_level: String(
-      project.risk_level ??
-        project["risk_level"] ??
-        "LOW"
-    ).toUpperCase(),
-
-    confidence:
-      Number(
-        project.confidence ??
-          project["confidence"] ??
-          0
-      ) || 0,
-
-    progress_gap:
-      Number(
-        project.progress_gap ??
-          project["progress_gap"] ??
-          0
-      ) || 0,
-
-    schedule_delay:
-      Number(
-        project.schedule_delay ??
-          project["schedule_delay"] ??
-          0
-      ) || 0,
-
-    cost_escalation:
-      Number(
-        project.cost_escalation ??
-          project["cost_escalation"] ??
-          0
-      ) || 0,
-
-    risk_factors:
-      project.risk_factors ??
-      project["risk_factors"] ??
-      "",
-  };
-}
-
-/* =========================================================
    HELPERS
 ========================================================= */
-
-function formatNumber(value) {
-  return new Intl.NumberFormat("en-IN", {
-    maximumFractionDigits: 1,
-  }).format(Number(value) || 0);
-}
-
-function formatCrore(value) {
-  return `₹${formatNumber(value)} Cr`;
-}
 
 function getRiskScore(projects) {
   if (!projects.length) return 0;
@@ -594,25 +490,59 @@ export default function Dashboard() {
               Projects
             </Link>
 
-            <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-400">
+            <Link
+              to="/analytics"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
               <BarChart3 size={18} />
               Analytics
+            </Link>
 
-              <span className="ml-auto rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px]">
-                AI
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-400">
+            <Link
+              to="/early-warnings"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
               <Bell size={18} />
-              Alerts
+              Early Warnings
 
               {stats.critical > 0 && (
                 <span className="ml-auto rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
                   {stats.critical}
                 </span>
               )}
-            </div>
+            </Link>
+
+            <Link
+              to="/risk-matrix"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              <PieChartIcon size={18} />
+              Risk Matrix
+            </Link>
+
+            <Link
+              to="/benchmarking"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              <TrendingUp size={18} />
+              Benchmarking
+            </Link>
+
+            <Link
+              to="/ai-assistant"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              <BrainCircuit size={18} />
+              AI Assistant
+            </Link>
+
+            <Link
+              to="/methodology"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              <BookOpen size={18} />
+              Methodology
+            </Link>
 
           </nav>
         </div>

@@ -10,6 +10,11 @@ import {
   Search,
 } from "lucide-react";
 
+import {
+  normalizeProjects,
+  formatPercent,
+} from "../utils/projectUtils";
+
 const API_URL = "http://127.0.0.1:5000";
 
 function Projects() {
@@ -31,7 +36,10 @@ function Projects() {
       }
 
       const data = await response.json();
-      setProjects(data.projects || []);
+      const normalizedProjects = normalizeProjects(
+        data.projects || []
+      );
+      setProjects(normalizedProjects);
     } catch (err) {
       setError(
         "Unable to load projects. Make sure the Flask backend is running."
@@ -51,21 +59,22 @@ function Projects() {
     return projects.filter((project) => {
       const matchesSearch =
         !query ||
-        String(project["Project Name"] || "")
+        String(project.project_name || "")
           .toLowerCase()
           .includes(query) ||
-        String(project.State || "")
+        String(project.state || "")
           .toLowerCase()
           .includes(query) ||
-        String(project.Agency || "")
+        String(project.agency || "")
           .toLowerCase()
           .includes(query) ||
-        String(project["Project Code"] || "")
+        String(project.project_code || "")
           .toLowerCase()
           .includes(query);
 
       const matchesRisk =
-        riskFilter === "ALL" || project.risk_level === riskFilter;
+        riskFilter === "ALL" ||
+        project.risk_level === riskFilter;
 
       return matchesSearch && matchesRisk;
     });
@@ -264,47 +273,50 @@ function Projects() {
               <tbody className="divide-y">
                 {filteredProjects.map((project, index) => (
                   <tr
-                    key={`${project["Sl. No"]}-${index}`}
+                    key={`${project.project_id}-${index}`}
                     className="transition hover:bg-slate-50"
                   >
                     <td className="px-5 py-4 font-medium text-slate-500">
-                      {project["Sl. No"]}
+                      {index + 1}
                     </td>
 
                     <td className="max-w-xs px-5 py-4">
                       <p className="font-semibold text-slate-900">
-                        {project["Project Name"]}
+                        {project.project_name}
                       </p>
 
                       <p className="mt-1 text-xs text-slate-400">
-                        {project["Project Code"]}
+                        {project.project_code}
                       </p>
                     </td>
 
                     <td className="px-5 py-4 text-slate-600">
-                      {project.State}
+                      {project.state}
                     </td>
 
                     <td className="max-w-xs px-5 py-4 text-slate-600">
-                      {project.Agency}
+                      {project.agency}
                     </td>
 
                     <td className="px-5 py-4">
                       <div className="w-28">
                         <div className="mb-1 flex justify-between text-xs">
                           <span className="font-medium text-slate-700">
-                            {project.physical_progress}%
+                            {project.physical_progress.toFixed(1)}%
                           </span>
                         </div>
 
                         <ProgressBar
-                          value={Number(project.physical_progress || 0)}
+                          value={Number(
+                            project.physical_progress ||
+                              0
+                          )}
                         />
                       </div>
                     </td>
 
                     <td className="px-5 py-4 font-medium text-slate-700">
-                      ₹{project["Cumulative Expenditure"]} Cr
+                      ₹{project.cumulative_expenditure.toFixed(2)} Cr
                     </td>
 
                     <td className="px-5 py-4">
@@ -312,13 +324,13 @@ function Projects() {
                     </td>
 
                     <td className="px-5 py-4 text-slate-600">
-                      {project.confidence}%
+                      {project.confidence.toFixed(1)}%
                     </td>
 
                     <td className="px-5 py-4">
                       <Link
                         to={`/projects/${encodeURIComponent(
-                          project["Sl. No"]
+                          project.project_code
                         )}`}
                         state={{ project }}
                         className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"

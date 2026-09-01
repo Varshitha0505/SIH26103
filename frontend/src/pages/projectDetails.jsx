@@ -14,12 +14,21 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import {
+  normalizeProject,
+  generateRecommendations,
+  getRiskDrivers,
+} from "../utils/projectUtils";
+
 function ProjectDetails() {
   const { id } = useParams();
   const location = useLocation();
-  const project = location.state?.project;
+  const rawProject = location.state?.project;
 
-  if (!project) {
+  // Normalize project data
+  const project = normalizeProject(rawProject || {});
+
+  if (!rawProject) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
         <div className="max-w-md rounded-2xl border bg-white p-8 text-center shadow-lg">
@@ -46,34 +55,45 @@ function ProjectDetails() {
     );
   }
 
+  // Get risk drivers and recommendations
+  const riskDrivers = getRiskDrivers(project);
+  const recommendations_data =
+    generateRecommendations(project);
+
   const risk = project.risk_level || "UNKNOWN";
-  const progress = Number(project.physical_progress || 0);
-  const confidence = Number(project.confidence || 0);
-  const scheduleDelay = Number(project.schedule_delay || 0);
-  const costEscalation = Number(project.cost_escalation || 0);
-  const expenditure = Number(project.expenditure || 0);
-  const progressGap = Number(project.progress_gap || 0);
+  const progress = project.physical_progress || 0;
+  const confidence = project.confidence || 0;
+  const scheduleDelay = project.schedule_delay || 0;
+  const costEscalation = project.cost_escalation || 0;
+  const expenditure = project.expenditure || 0;
+  const progressGap = project.progress_gap || 0;
 
   const riskConfig = {
     LOW: {
       label: "LOW RISK",
-      description: "Project is currently performing within acceptable parameters.",
+      description:
+        "Project is currently performing within acceptable parameters.",
       icon: CheckCircle2,
-      classes: "bg-green-100 text-green-700 border-green-200",
+      classes:
+        "bg-green-100 text-green-700 border-green-200",
       banner: "bg-green-50 border-green-200",
     },
     MEDIUM: {
       label: "MEDIUM RISK",
-      description: "Project should be monitored for emerging performance issues.",
+      description:
+        "Project should be monitored for emerging performance issues.",
       icon: Clock3,
-      classes: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      classes:
+        "bg-yellow-100 text-yellow-700 border-yellow-200",
       banner: "bg-yellow-50 border-yellow-200",
     },
     HIGH: {
       label: "HIGH RISK",
-      description: "Project requires close monitoring and corrective action.",
+      description:
+        "Project requires close monitoring and corrective action.",
       icon: AlertTriangle,
-      classes: "bg-orange-100 text-orange-700 border-orange-200",
+      classes:
+        "bg-orange-100 text-orange-700 border-orange-200",
       banner: "bg-orange-50 border-orange-200",
     },
     CRITICAL: {
@@ -96,37 +116,8 @@ function ProjectDetails() {
 
   const RiskIcon = config.icon;
 
-  const recommendations = [];
-
-  if (scheduleDelay > 20) {
-    recommendations.push(
-      "Review project schedule and initiate a delay-recovery plan."
-    );
-  }
-
-  if (costEscalation > 10) {
-    recommendations.push(
-      "Review cost escalation and strengthen budgetary controls."
-    );
-  }
-
-  if (progressGap > 20) {
-    recommendations.push(
-      "Investigate the progress gap and identify implementation bottlenecks."
-    );
-  }
-
-  if (expenditure > 70) {
-    recommendations.push(
-      "Monitor remaining funds closely against the physical progress achieved."
-    );
-  }
-
-  if (recommendations.length === 0) {
-    recommendations.push(
-      "Continue regular monitoring. No major corrective action is currently indicated."
-    );
-  }
+  // Get recommendations from utility function
+  const recommendations = generateRecommendations(project);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -170,7 +161,7 @@ function ProjectDetails() {
           </Link>
           <span>/</span>
           <span className="font-medium text-slate-700">
-            Project {project["Sl. No"] || id}
+            Project {project.project_id || id}
           </span>
         </div>
 
@@ -180,30 +171,30 @@ function ProjectDetails() {
             <div className="max-w-4xl">
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className="rounded-lg bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                  PROJECT #{project["Sl. No"]}
+                  PROJECT #{project.project_id}
                 </span>
 
                 <RiskBadge risk={risk} />
               </div>
 
               <h2 className="text-2xl font-bold leading-tight text-slate-900 md:text-3xl">
-                {project["Project Name"]}
+                {project.project_name}
               </h2>
 
               <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
                 <span className="flex items-center gap-2">
                   <Building2 size={16} />
-                  {project.Agency}
+                  {project.agency}
                 </span>
 
                 <span className="flex items-center gap-2">
                   <MapPin size={16} />
-                  {project.State}
+                  {project.state}
                 </span>
 
                 <span className="flex items-center gap-2">
                   <FileText size={16} />
-                  {project["Project Code"]}
+                  {project.project_code}
                 </span>
               </div>
             </div>
@@ -301,7 +292,7 @@ function ProjectDetails() {
 
             <PerformanceCard
               title="Expenditure"
-              value={`₹${project["Cumulative Expenditure"] || 0} Cr`}
+              value={`₹${project.cumulative_expenditure.toFixed(2)} Cr`}
               icon={<DollarSign size={21} />}
               progress={Math.min(expenditure, 100)}
             />
@@ -324,24 +315,24 @@ function ProjectDetails() {
           </div>
 
           <div className="grid grid-cols-1 divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-            <InfoRow label="Project Code" value={project["Project Code"]} />
-            <InfoRow label="State" value={project.State} />
-            <InfoRow label="Agency" value={project.Agency} />
-            <InfoRow label="Approval Date" value={project["Approval Date"]} />
-            <InfoRow label="Start Date" value={project["Start Date"]} />
-            <InfoRow label="Target DoC" value={project["Target DoC"]} />
-            <InfoRow label="Revised DoC" value={project["Revised DoC"]} />
+            <InfoRow label="Project Code" value={project.project_code} />
+            <InfoRow label="State" value={project.state} />
+            <InfoRow label="Agency" value={project.agency} />
+            <InfoRow label="Approval Date" value={project.approval_date} />
+            <InfoRow label="Start Date" value={project.start_date} />
+            <InfoRow label="Target DoC" value={project.target_doc} />
+            <InfoRow label="Revised DoC" value={project.revised_doc} />
             <InfoRow
               label="Original Cost"
-              value={`₹${project["Original Cost"] || 0} Cr`}
+              value={`₹${project.original_cost.toFixed(2)} Cr`}
             />
             <InfoRow
               label="Revised Cost"
-              value={`₹${project["Revised Cost"] || 0} Cr`}
+              value={`₹${project.revised_cost.toFixed(2)} Cr`}
             />
             <InfoRow
               label="Cumulative Expenditure"
-              value={`₹${project["Cumulative Expenditure"] || 0} Cr`}
+              value={`₹${project.cumulative_expenditure.toFixed(2)} Cr`}
             />
           </div>
         </section>
