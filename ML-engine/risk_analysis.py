@@ -2,7 +2,14 @@ import joblib
 import pandas as pd
 
 # Load trained ML model
-model = joblib.load("risk_model.pkl")
+import os
+
+MODEL_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "risk_model.pkl"
+)
+
+model = joblib.load(MODEL_PATH)
 
 
 def analyze_project(
