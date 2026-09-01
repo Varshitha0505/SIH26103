@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from risk_analysis import analyze_project
-
+from flask_cors import CORS
 import sys
 import os
 import pandas as pd
@@ -15,6 +15,9 @@ sys.path.append(
 from analytics import calculate_analytics
 
 app = Flask(__name__)
+CORS(app)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
